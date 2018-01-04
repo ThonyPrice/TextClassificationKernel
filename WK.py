@@ -3,6 +3,11 @@
 
 # TODO: Include NLTK packages to git repository
 # TODO: Investigate if it's reasonable to perform stemming on dataset
+# TODO: Make sure each document one get one feature vector
+# TODO: Each pair of vectors get a value decided by the dot
+#       product of their feature vectors
+# TODO: Put all values into a gram matrix
+# TODO: Return Gram matrix instead ESSENTIAL before testing with SVM
 
 from collections import Counter
 import itertools
