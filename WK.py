@@ -5,6 +5,7 @@
 # TODO: Investigate if it's reasonable to perform stemming on dataset
 
 import numpy as np
+import os
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -20,15 +21,22 @@ Word Kernel (WK). The feature vector can be collected immedeatly as:
 '''
 class WK(object):
 
-    def __init__(self, doc_path):
-        file_content = self.openFile(doc_path)
-        processed_text_list = self.rmStopWords(file_content)
+    def __init__(self, directory):
+        docs = self.filesFrom(directory))
+        for document in docs:
+            file_content = self.open(document)
+            processed_text_list = self.rmStopWords(file_content)
         self.featureVector = self.featureVector(processed_text_list)
 
-    def openFile(self, path):
+    def filesFrom(self, directory):
+        return [
+            file_name for file_name in os.listdir(directory)
+            if file_name.endswith(".txt")
+        ]
+
+    def open(self, path):
         with open(path, 'r', encoding='utf-8') as myfile:
-            text = myfile.read()
-        return text
+            return myfile.read()
 
     def rmStopWords(self, text):
         signs = [
@@ -52,9 +60,9 @@ class WK(object):
 # Currently used for testing purposes,
 # remove main() when done with testing.
 def main():
-    path = 'test_docs/alice_ch1.txt'
+    path = './test_docs/'
     result = WK(path).vector
-    print('Result: ', type(result)
+    print('Result: ', result)
     print('~*~ End Of Word Kernel ~*~')
 
 if __name__ == '__main__':
