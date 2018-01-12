@@ -19,7 +19,7 @@ def test(data, listLabels, listNum, k):
 
 	# Classifiers to use with the data	
 	classifiers = [
-			(k + ' LinearSVC', OneVsRestClassifier(LinearSVC(random_state=42)))
+			(k + ' LinearSVC', OneVsRestClassifier(LinearSVC(loss='hinge',random_state=42)))
 			#,(k + ' SVM SVC linear', OneVsRestClassifier(SVC(kernel="linear", cache_size=200, random_state=42)))
 			#,(k + 'SKK kernel', OneVsRestClassifier(SVC(kernel=SKK.kernel(data), cache_size=200, random_state=42, decision_function_shape='ovr')))
 			#,(k + 'Linear with SGD', OneVsRestClassifier(linear_model.SGDClassifier(penalty='l2',alpha=0.001, random_state=42, max_iter=100)))
