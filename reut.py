@@ -1,12 +1,6 @@
-import nltk
-from nltk.corpus import reuters
-from nltk.corpus import stopwords
+from nltk.corpus import reuters, stopwords
 from sklearn.preprocessing import MultiLabelBinarizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-# nltk.download('reuters')
-# nltk.download('stopwords')
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 
 n_classes = 90
 labels = reuters.categories()
