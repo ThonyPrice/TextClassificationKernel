@@ -1,6 +1,8 @@
 # N-Gram kernel
 from collections import Counter
 from math import sqrt
+import itertools as it
+import numpy as np
 
 
 class NGK():
@@ -51,28 +53,19 @@ class NGK():
 
         return dot_product / (g1_length * g2_length)
 
+    def gram_matrix(self, docs):
+        gram_matrix = np.zeros((len(docs), len(docs)))
+        for ((i, doc1), (j, doc2)) in it.combinations_with_replacement(enumerate(docs), 2):
+            similarity = self.cosine_similarity(doc1, doc2)
+            gram_matrix[i, j] = similarity
+            gram_matrix[j, i] = similarity
+        return gram_matrix
+
 
 if __name__ == '__main__':
-    ngk = NGK(5)
-    print("Grams: {}".format(ngk.gramize("Test sentence")))
+    ngk = NGK(3)
 
-    print("Jaccard Similarity: {}".format(ngk.jaccard_similarity(
-        "the quick brown fox jumps high", "the quick red fox jumps high",)))
-    print("Jaccard Similarity: {}".format(ngk.jaccard_similarity(
-        "the quick brown fox jumps high", "the lazy red fox jumps low",)))
-    print("Jaccard Similarity: {}".format(ngk.jaccard_similarity(
-        "the quick brown fox jumps high", "a bright red doctor isn't high",)))
-    print("Jaccard Similarity: {}".format(ngk.jaccard_similarity(
-        "the quick brown fox jumps high", "a bright red doctor is very smart",)))
-
-    print()
-
-    # Cosine similarity gives better results.
-    print("Cosine Similarity: {}".format(ngk.cosine_similarity(
-        "the quick brown fox jumps high", "the quick red fox jumps high",)))
-    print("Cosine Similarity: {}".format(ngk.cosine_similarity(
-        "the quick brown fox jumps high", "the lazy red fox jumps low",)))
-    print("Cosine Similarity: {}".format(ngk.cosine_similarity(
-        "the quick brown fox jumps high", "a bright red doctor isn't high",)))
-    print("Cosine Similarity: {}".format(ngk.cosine_similarity(
-        "the quick brown fox jumps high", "a bright red doctor is very smart",)))
+    docs = ["the quick brown fox jumps high", "the quick red fox jumps high", "the lazy red fox jumps low",
+            "a bright red doctor isn't high", "a bright red doctor is very smart"]
+    gram = ngk.gram_matrix(docs)
+    print(gram)
