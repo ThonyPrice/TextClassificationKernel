@@ -66,13 +66,15 @@ class NGK():
 
 
 if __name__ == '__main__':
+    
     print("NGK Start")
     ngk = NGK(5)
     print("EARN")
     train,test, docs = reut.load_docs("earn")
     print("CORN")
     train,test, docs = reut.load_docs("corn")
-    print(docs)
+
     gram_matrix = ngk.gram_matrix(docs['train'][:10])
+    print(gram_matrix)
 
     print("NGK End")
