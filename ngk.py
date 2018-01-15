@@ -3,7 +3,8 @@ from collections import Counter
 from math import sqrt
 import itertools as it
 import numpy as np
-
+import reut
+from nltk.corpus import reuters
 
 class NGK():
     """
@@ -17,12 +18,12 @@ class NGK():
 
     def gramize(self, doc):
         """Returns the documented converted into a set containing its n-grams."""
-        words = list()
-        for i in range(self.n):
-            words.append(doc[:i])
-        for i in range(len(doc)):
-            words.append(doc[i:i+self.n])
-        return words
+        def ngram_gen():
+            for i in range(self.n):
+                yield (0,i) #doc[:i]
+            for i in range(len(doc)):
+                yield (i, i+self.n) #doc[i:i+self.n]
+        return ngram_gen()
 
     def similarity(self, doc1, doc2):
         """Returns the similarity between two documents."""
@@ -37,6 +38,8 @@ class NGK():
 
     def cosine_similarity(self, doc1, doc2):
         g1, g2 = self.gramize(doc1), self.gramize(doc2)
+
+
         # Counts the occurance of each ngram
         # Basically a sparse vector of every ngram and the times they occur
         doc1_wordfreq, doc2_wordfreq = Counter(g1), Counter(g2)
@@ -48,8 +51,8 @@ class NGK():
 
         # Dot product between the two vectors
         dot_product = sum([doc1_wordfreq[k] * doc2_wordfreq[k] for k in shared_ngrams])
-        g1_length = sqrt(sum([doc1_wordfreq[k]**2 for k in doc1_wordfreq.keys()]))
-        g2_length = sqrt(sum([doc2_wordfreq[k]**2 for k in doc2_wordfreq.keys()]))
+        g1_length = np.sqrt(np.sum(np.power(np.asarray(list(doc1_wordfreq.values())), 2)))
+        g2_length = np.sqrt(np.sum(np.power(np.asarray(list(doc2_wordfreq.values())), 2)))
 
         return dot_product / (g1_length * g2_length)
 
@@ -63,9 +66,15 @@ class NGK():
 
 
 if __name__ == '__main__':
-    ngk = NGK(3)
+    
+    print("NGK Start")
+    ngk = NGK(5)
+    print("EARN")
+    train,test, docs = reut.load_docs("earn")
+    print("CORN")
+    train,test, docs = reut.load_docs("corn")
 
-    docs = ["the quick brown fox jumps high", "the quick red fox jumps high", "the lazy red fox jumps low",
-            "a bright red doctor isn't high", "a bright red doctor is very smart"]
-    gram = ngk.gram_matrix(docs)
-    print(gram)
+    gram_matrix = ngk.gram_matrix(docs['train'][:10])
+    print(gram_matrix)
+
+    print("NGK End")
