@@ -17,14 +17,14 @@ def play(ngram, list):
 	config = {}
 	train, test, docs = r.load_docs(config)
 
-	# Obtain WK processed documents	
+	# Obtain WK processed documents
 	xs_wk = r.WK(docs)
 	ys = r.targets(train, test)
 
 	# put xs and ys together
 	data_wk = r.data(xs_wk, ys)
 
-	# Get index from desired categories  
+	# Get index from desired categories
 	listNum = []
 	for i in list:
 		for w in range(len(reuters.categories())):
@@ -35,8 +35,8 @@ def play(ngram, list):
 	for j in range(len(ngram)):
 		xs_ngk = r.NGK(docs, ngram[j])
 		data_ngk = r.data(xs_ngk, ys)
-		name = "NGK length "+str(ngram[j])	
-		t.test(data_ngk, list, listNum, name) 
+		name = "NGK length "+str(ngram[j])
+		t.test(data_ngk, list, listNum, name)
 
 	# Performs testing for WK and gets the final lists of scores
 	n, f, p, a = t.test(data_wk, list, listNum, "WK")
