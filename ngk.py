@@ -18,12 +18,13 @@ class NGK():
 
     def gramize(self, doc):
         """Returns the documented converted into a set containing its n-grams."""
-        def ngram_gen():
-            for i in range(self.n):
-                yield (0,i) #doc[:i]
-            for i in range(len(doc)):
-                yield (i, i+self.n) #doc[i:i+self.n]
-        return ngram_gen()
+        words = []
+        for i in range(self.n):
+            words.append(doc[:i])
+        for i in range(len(doc)):
+            words.append(doc[i:i+self.n])
+
+        return words
 
     def similarity(self, doc1, doc2):
         """Returns the similarity between two documents."""
@@ -36,10 +37,8 @@ class NGK():
         # Researching what is best.
         return len(g1.intersection(g2)) / len(g1.union(g2))
 
-    def cosine_similarity(self, doc1, doc2):
-        g1, g2 = self.gramize(doc1), self.gramize(doc2)
-
-
+    def cosine_similarity(self, g1, g2):
+        
         # Counts the occurance of each ngram
         # Basically a sparse vector of every ngram and the times they occur
         doc1_wordfreq, doc2_wordfreq = Counter(g1), Counter(g2)
@@ -58,8 +57,12 @@ class NGK():
 
     def gram_matrix(self, docs):
         gram_matrix = np.zeros((len(docs), len(docs)))
-        for ((i, doc1), (j, doc2)) in it.combinations_with_replacement(enumerate(docs), 2):
-            similarity = self.cosine_similarity(doc1, doc2)
+
+        # Do the gramization once for each document, previously did it for every combination.
+        grams = [list(self.gramize(doc)) for doc in docs]
+
+        for ((i, gram1), (j, gram2)) in it.combinations_with_replacement(enumerate(grams), 2):
+            similarity = self.cosine_similarity(gram1, gram2)
             gram_matrix[i, j] = similarity
             gram_matrix[j, i] = similarity
         return gram_matrix
@@ -74,5 +77,9 @@ if __name__ == '__main__':
     train,test, docs = reut.load_docs("corn")
     print(docs)
     gram_matrix = ngk.gram_matrix(docs['train'][:10])
+
+    train,test, docs = reut.load_docs()
+
+    gram_matrix = ngk.gram_matrix(docs['train'][:500])
 
     print("NGK End")
