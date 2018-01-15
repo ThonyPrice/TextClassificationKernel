@@ -7,8 +7,11 @@ labels = reuters.categories()
 signs = [',', '.', ';', ':', '?', '!', '-', '--', "'", '(', ')', '[', ']']
 stop_words = stopwords.words("english") + signs
 
-def load_docs(config={}):	
-	documents = reuters.fileids()
+def load_docs(label=None, config={}):
+	if not label:
+		documents = reuters.fileids()
+	else:
+		documents = reuters.fileids(label)
 	test = [d for d in documents if d.startswith('test/')]
 	train = [d for d in documents if d.startswith('training/')]
 	docs = {}
