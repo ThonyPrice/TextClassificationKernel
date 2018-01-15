@@ -1,99 +1,69 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# TODO: Include NLTK packages to git repository
-# TODO: Investigate if it's reasonable to perform stemming on dataset
-# TODO: Make sure each document one get one feature vector
-# TODO: Each pair of vectors get a value decided by the dot
-#       product of their feature vectors
-# TODO: Put all values into a gram matrix
-# TODO: Return Gram matrix instead ESSENTIAL before testing with SVM
+# TODO: Function that takes a list of strings and processes every string in it
 
-from collections import Counter
 import itertools
-from math import log
+import numpy as np
 import os
 
-import numpy as np
+from collections import Counter
+from math import floor
+from math import log
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-
 '''
-This class provides conversion of text documents into a feature vector
-to be used in an SVM for text classification purposes. Initiate class
-with a path to a directory with documents that should be convertet to a
-feature vector for the Word Kernel (WK). The feature vector can be
-collected immedeatly as:
-
->>> WK(/path/to/file).featureVector
-
-Notice (dependencies):
-The current version requires NLTK (use pip install),
-decuments must be .txt files (easily modified),
-document encoding must be UTF-8.
+This class provides conversion of text documents into a gram matrix
+to be used in an SVM for text classification purposes. Example:
+>>> WK([text1, text2,...]).gram_matrix
 '''
-
 
 class WK(object):
 
-    def __init__(self, directory):
-        docs = self.filesFrom(directory)
+    def __init__(self, docs):
         n = len(docs)
-        content_list = self.extract(docs)
-        content_list = self.process(content_list)
-        separate_doc_counts = [Counter(content) for content in content_list]
-        total_count = Counter(list(itertools.chain.from_iterable(content_list)))
-        vector = [
-            log(1 + total_count[x])
-            # Sum below is document frequency
-            * (n / sum([1 for count in separate_doc_counts if x in count]))
-            for x in total_count
-            if total_count[x] > 3
-        ]
-        self.featureVector = np.asarray(vector)
+        # Join all text to find unique words and word frequency
+        all_words = Counter(word_tokenize(" ".join(docs)))
+        all_words = self.filterFewOccurences(all_words, 2)
+        df = self.document_frequency(all_words, docs)
+        unique_words = [word for word in df.keys()]
+        # Calculate feature vector and use these to calc gram matrix
+        feature_vectors = self.featureVectors(docs, unique_words, df, n)
+        m = np.zeros((n, n))
+        for idx, (doc1, doc2) in enumerate(itertools.product(feature_vectors, feature_vectors)):
+            m[floor(idx/n)][idx%n] = np.dot(doc1, doc2) / \
+                ( np.dot(doc1, doc1) * np.dot(doc2, doc2) )**0.5
+        self.gram_matrix = m
 
-    def filesFrom(self, directory):
-        return [
-            directory + file_name
-            for file_name in os.listdir(directory)
-            if file_name.endswith(".txt")
-        ]
+    def filterFewOccurences(self, words, limit):
+        return {x : words[x] for x in words if words[x] > limit}
 
-    def extract(self, docs):
-        return [self.open(document) for document in docs]
+    def document_frequency(self, words, docs):
+        for word in words.keys():
+            words[word] = sum([1 for doc in docs if word in doc])
+        return words
 
-    def open(self, path):
-        with open(path, 'r', encoding='utf-8') as myfile:
-            return myfile.read()
-
-    def process(self, docs):
-        return [self.rmStopWords(document) for document in docs]
-
-    def rmStopWords(self, text):
-        signs = [
-            '.', ',', ':', ';', '-', '?', '--'
-            '!', "'", '(', ')', '[', ']'
-        ]
-        stop_words = set(stopwords.words('english'))
-        word_tokens = word_tokenize(text)
-        return [
-            w for w in word_tokens
-            if not w in stop_words
-            and w not in signs
-        ]
-
-    def featureVector(self, text_list):
-        unique_words_and_ocurrences = Counter(text_list)
-        ocurrences = list(unique_words_and_ocurrences.values())
-        return np.asarray(ocurrences)
-
+    def featureVectors(self, docs, unique_words, df, n):
+        vectors = []
+        for doc in docs:
+            doc_count = Counter(word_tokenize(doc))
+            v = [
+                log( 1 + doc_count[word] ) *
+                log( n / df[word] ) for word in unique_words
+            ]
+            vectors.append(np.asarray(v))
+        return vectors
 
 # Currently used for testing purposes,
 # remove main() when done with testing.
 def main():
-    path = './test_docs/'
-    result = WK(path).featureVector
+    indata = [
+        "So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.",
+        "The rabbit-hole went straight on like a tunnel for some way, and then dipped suddenly down, so suddenly that Alice had not a moment to think about stopping herself before she found herself falling down a very deep well.",
+        "There were doors all round the hall, but they were all locked; and when Alice had been all the way down one side and up the other, trying every door, she walked sadly down the middle, wondering how she was ever to get out again."
+    ]
+    result = WK(indata).gram_matrix
     print('Result: ', result)
     print('~*~ End Of Word Kernel ~*~')
 
