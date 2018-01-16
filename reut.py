@@ -19,6 +19,25 @@ def load_docs(label=None, config={}):
 	docs['test'] = [reuters.raw(doc_id) for doc_id in test]
 	return train, test, docs
 
+
+
+def load_docs_with_labels(labels=[], config={train:}):
+	"""
+	Returns two list of tuples (label, document) where label is one of the passed in labels.
+	First list is training data, second list is test data.
+	"""
+	label_docs_train = []
+	label_docs_test = []
+	for label in labels:
+		train, test, docs = load_docs(label)
+		training = docs['train']
+		test = docs['test']
+		tupler = lambda doc : (label, doc)
+		label_docs_train += map(tupler, label_docs_train)
+		label_docs_test  += map(tupler, label_docs_test)
+	return (label_docs_train, label_docs_test)
+
+
 #WK documents processing
 def WK(docs):
 	vectorizer = CountVectorizer(stop_words=stop_words)
