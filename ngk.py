@@ -5,6 +5,7 @@ import itertools as it
 import numpy as np
 import reut
 from nltk.corpus import reuters
+import functools
 
 class NGK():
     """
@@ -16,6 +17,7 @@ class NGK():
     def __init__(self, n):
         self.n = n
 
+    @functools.lru_cache()
     def vectorize(self, doc):
         """Returns the documented converted into a set containing its n-grams."""
         words = []
@@ -25,6 +27,11 @@ class NGK():
             words.append(doc[i:i+self.n])
 
         return words
+
+    def kernel(self):
+        def kernel_func(doc1, doc2):
+            return self.similarity(self.vectorize(doc1),self.vectorize(doc2))
+        return kernel_func
 
     def similarity(self, doc1, doc2):
         """Returns the similarity between two documents."""
