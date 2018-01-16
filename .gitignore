@@ -102,3 +102,8 @@ ENV/
 
 # Mac folders
 .DS_Store
+
+#Profiling and txt files
+*.cprof
+*.txt
+
