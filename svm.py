@@ -6,7 +6,8 @@ import numpy
 import reut
 from ngk import NGK
 from pprint import pprint
-
+import random
+import pickle
 def p_mat(data, kernel):
     P = [[data[i].label*data[j].label*kernel(data[i].doc, data[j].doc) for j in range(len(data))] for i in range(len(data))]
     return P
@@ -44,20 +45,46 @@ def predict(kernel, NAD, newpoint):
 
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
-    ngk = NGK(3)
-    training_data = docmap['earn']['train'][:20] + docmap['corn']['train'][:10] + docmap['acq']['train'][:15]
+    ngk = NGK(5)
+
+    train_amt = 380
+    test_amt = 90
+    # Using the splits in the paper
+    training_data = docmap['earn']['train'][:152] + docmap['corn']['train'][:38] + docmap['acq']['train'][:114] + docmap['crude']['train'][:76]
+    test_data = docmap['earn']['test'][:40] + docmap['corn']['test'][:10] + docmap['acq']['test'][:25] + docmap['crude']['test'][:15]
     
-    r,a,zad,nzad = svm_for_label(training_data, ngk.kernel(), "earn")
+    try:
+        nzad = pickle.load(open("nonzero_alpha_data.p","rb"))
+    except IOError as e:
+        r,a,zad,nzad = svm_for_label(training_data, ngk.kernel(), "earn")
+    pickle.dump(nzad, open("nonzero_alpha_data.p", "wb"))
     # print(r)
     # print(a)
     # print(zad)
+
     pprint(nzad)
     vals = []
-    for i in range(30):
-        new_doc = docmap['earn']['test'][i]
-        print("PREDICTION: ", new_doc.label)
-        # print("Text: ",new_doc[1])
-        vals.append(predict(ngk.kernel(), nzad, new_doc.doc))
+    correct = 0
+    true_pos = 0
+    false_neg = 0
+    false_pos = 0
+    true_neg = 0
+    for doc in test_data:
+        print("PREDICTION: ", doc.label)
+        prediction = (predict(ngk.kernel(), nzad, doc.doc))
+        if doc.label == "earn" and prediction > 0:
+            correct += 1
+            true_pos += 1
+        elif doc.label == "earn" and prediction <= 0:
+            false_neg += 1
+        elif doc.label != "earn" and prediction < 0:
+            correct += 1
+            true_neg += 1
+        else:
+            false_pos += 1
+
+
     print(vals)
-    correct = sum(map(lambda x : x > 0, vals))
-    print("Accuracy", correct/len(vals))
+    print("Accuracy", correct/len(test_data))
+    print("Precision:", true_pos/(true_pos+false_pos))
+    print("Recall: ", true_pos/(true_pos+false_neg))
