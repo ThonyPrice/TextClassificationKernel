@@ -21,7 +21,7 @@ def load_docs(label=None, config={}):
 
 
 
-def load_docs_with_labels(labels=[], config={train:}):
+def load_docs_with_labels(labels=[], config={}):
 	"""
 	Returns two list of tuples (label, document) where label is one of the passed in labels.
 	First list is training data, second list is test data.
