@@ -20,22 +20,36 @@ def load_docs(label=None, config={}):
 	return train, test, docs
 
 
+class Doc:
+	def __init__(self, doc, label):
+		self.label = label
+		self.doc = doc
+	def __string__(self):
+		return "Doc({})".format(self.label)
 
 def load_docs_with_labels(labels=[], config={}):
 	"""
-	Returns two list of tuples (label, document) where label is one of the passed in labels.
-	First list is training data, second list is test data.
+	Returns a map on the form 
+		{
+			label1 : 
+					"test" : [(label, doc) ...] 
+					"train": [(label, doc) ...]
+			label2 : 
+					"test" : [(label, doc) ...] 
+					"train": [(label, doc) ...]
+		}
 	"""
-	label_docs_train = []
-	label_docs_test = []
+	doc_map = {}
 	for label in labels:
+		doc_map[label] = {"train": [], "test": []}
 		train, test, docs = load_docs(label)
 		training = docs['train']
 		test = docs['test']
-		tupler = lambda doc : (label, doc)
-		label_docs_train += map(tupler, label_docs_train)
-		label_docs_test  += map(tupler, label_docs_test)
-	return (label_docs_train, label_docs_test)
+		DocMaker = lambda doc : Doc(doc, label)
+		doc_map[label]["train"] += map(DocMaker, training)
+		doc_map[label]["test"]  += map(DocMaker, test)
+		print(label)
+	return doc_map
 
 
 #WK documents processing
