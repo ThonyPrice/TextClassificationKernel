@@ -16,7 +16,7 @@ class NGK():
     def __init__(self, n):
         self.n = n
 
-    def gramize(self, doc):
+    def vectorize(self, doc):
         """Returns the documented converted into a set containing its n-grams."""
         words = []
         for i in range(self.n):
@@ -31,7 +31,7 @@ class NGK():
         return self.cosine_similarity(doc1, doc2)
 
     def jaccard_similarity(self, doc1, doc2):
-        g1, g2 = set(self.gramize(doc1)), set(self.gramize(doc2))
+        g1, g2 = set(self.vectorize(doc1)), set(self.vectorize(doc2))
         # Uses the Jaccard similarity coefficient
         # Should probably use something else, but there's like a dozen different ways to do it.
         # Researching what is best.
@@ -59,9 +59,9 @@ class NGK():
         gram_matrix = np.zeros((len(docs), len(docs)))
 
         # Do the gramization once for each document, previously did it for every combination.
-        grams = [list(self.gramize(doc)) for doc in docs]
+        vectorized = [list(self.vectorize(doc)) for doc in docs]
 
-        for ((i, gram1), (j, gram2)) in it.combinations_with_replacement(enumerate(grams), 2):
+        for ((i, gram1), (j, gram2)) in it.combinations_with_replacement(enumerate(vectorized), 2):
             similarity = self.cosine_similarity(gram1, gram2)
             gram_matrix[i, j] = similarity
             gram_matrix[j, i] = similarity
