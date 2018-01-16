@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# TODO: Function that takes a list of strings and processes every string in it
 
 import itertools
 import numpy as np
@@ -42,20 +41,25 @@ class WK(object):
         self.n, n = len(docs), len(docs)
         # Join all text to find unique words and word frequency
         all_words = Counter(word_tokenize(" ".join(docs)))
-        all_words = self.filterFewOccurences(all_words, 2)
+        all_words = self.filterFewOccurences(all_words, 3)
         self.df = self.document_frequency(all_words, docs)
         self.unique_words = [word for word in self.df.keys()]
         # Calculate feature vector and use these to calc gram matrix
-        feature_vectors = self.featureVectors(docs, self.unique_words, self.df, n)
-        m = np.zeros((n, n))
-        for idx, (doc1, doc2) in enumerate(itertools.product(feature_vectors, feature_vectors)):
-            m[floor(idx/n)][idx%n] = np.dot(doc1, doc2) / \
-                ( np.dot(doc1, doc1) * np.dot(doc2, doc2) )**0.5
-        return m
+        # feature_vectors = self.featureVectors(docs, self.unique_words, self.df, n)
+        # m = np.zeros((n, n))
+        # for idx, (doc1, doc2) in enumerate(itertools.product(feature_vectors, feature_vectors)):
+        #     m[floor(idx/n)][idx%n] = np.dot(doc1, doc2) / \
+        #         ( np.dot(doc1, doc1) * np.dot(doc2, doc2) )**0.5
+        # return m
+
+    def kernel_func(self, doc1, doc2):
+        v = self.vectorize(doc1)
+        w = self.vectorize(doc2)
+        return np.dot(v, w) / ( np.dot(v, v) * np.dot(w, w) )**0.5
 
     def vectorize(self, text):
         v = self.featureVectors([text], self.unique_words, self.df, self.n)[0]
-        return v / np.linalg.norm(v)
+        return v
 
     def filterFewOccurences(self, words, limit):
         return {x : words[x] for x in words if words[x] > limit}
@@ -71,7 +75,8 @@ class WK(object):
             doc_count = Counter(word_tokenize(doc))
             v = [
                 log( 1 + doc_count[word] ) *
-                log( n / df[word] ) for word in unique_words
+                log( n / self.df[word] ) for word in unique_words
+                if df[word] > 0
             ]
             vectors.append(np.asarray(v))
         return vectors
