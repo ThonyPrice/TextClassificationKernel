@@ -43,6 +43,28 @@ def predict(kernel, NAD, newpoint):
     s = sum(calc)
     return s
 
+def calc_accuracy_precision_recall(test_data, kernel, nzad):
+    correct = 0
+    true_pos = 0
+    false_neg = 0
+    false_pos = 0
+    true_neg = 0
+    for doc in test_data:
+        print("PREDICTION: ", doc.label)
+        prediction = (predict(ngk.kernel(), nzad, doc.doc))
+        if doc.label == "earn" and prediction > 0:
+            correct += 1
+            true_pos += 1
+        elif doc.label == "earn" and prediction <= 0:
+            false_neg += 1
+        elif doc.label != "earn" and prediction < 0:
+            correct += 1
+            true_neg += 1
+        else:
+            false_pos += 1
+    return (correct(len(test_data)), true_pos/(true_pos+false_pos), true_pos/(true_pos+false_neg))
+
+
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
     ngk = NGK(5)
@@ -63,28 +85,10 @@ if __name__ == '__main__':
     # print(zad)
 
     pprint(nzad)
-    vals = []
-    correct = 0
-    true_pos = 0
-    false_neg = 0
-    false_pos = 0
-    true_neg = 0
-    for doc in test_data:
-        print("PREDICTION: ", doc.label)
-        prediction = (predict(ngk.kernel(), nzad, doc.doc))
-        if doc.label == "earn" and prediction > 0:
-            correct += 1
-            true_pos += 1
-        elif doc.label == "earn" and prediction <= 0:
-            false_neg += 1
-        elif doc.label != "earn" and prediction < 0:
-            correct += 1
-            true_neg += 1
-        else:
-            false_pos += 1
+    accuracy, precision, recall = calc_accuracy_precision_recall(test_data, ngk.kernel(), nzad)
 
 
     print(vals)
-    print("Accuracy", correct/len(test_data))
-    print("Precision:", true_pos/(true_pos+false_pos))
-    print("Recall: ", true_pos/(true_pos+false_neg))
+    print("Accuracy", accuracy)
+    print("Precision:", precision)
+    print("Recall: ", recall)
