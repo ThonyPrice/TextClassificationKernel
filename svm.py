@@ -65,27 +65,39 @@ def calc_accuracy_precision_recall(test_data, kernel, nzad):
     return (correct(len(test_data)), true_pos/(true_pos+false_pos), true_pos/(true_pos+false_neg))
 
 
+def get_training_data(docmap):
+    # Using the splits in the paper
+    return docmap['earn']['train'][:152] + docmap['corn']['train'][:38] + docmap['acq']['train'][:114] + docmap['crude']['train'][:76]
+
+
+def get_test_data(docmap):
+    # Using the splits in the paper
+    return  docmap['earn']['test'][:40] + docmap['corn']['test'][:10] + docmap['acq']['test'][:25] + docmap['crude']['test'][:15]
+
+
+def do_kernel(docmap, kernelClass):
+    try:
+        nzad = pickle.load(open("nonzero_alpha_data"+kernelClass+".p","rb"))
+    except IOError as e:
+        r,a,zad,nzad = svm_for_label(training_data, kernelClass.kernel(), "earn")
+    pickle.dump(nzad, open("nonzero_alpha_data"+kernelClass+".p", "wb"))
+
+    return calc_accuracy_precision_recall(test_data, ngk.kernel(), nzad)
+
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
     ngk = NGK(5)
 
     train_amt = 380
     test_amt = 90
-    # Using the splits in the paper
-    training_data = docmap['earn']['train'][:152] + docmap['corn']['train'][:38] + docmap['acq']['train'][:114] + docmap['crude']['train'][:76]
-    test_data = docmap['earn']['test'][:40] + docmap['corn']['test'][:10] + docmap['acq']['test'][:25] + docmap['crude']['test'][:15]
-    
-    try:
-        nzad = pickle.load(open("nonzero_alpha_data.p","rb"))
-    except IOError as e:
-        r,a,zad,nzad = svm_for_label(training_data, ngk.kernel(), "earn")
-    pickle.dump(nzad, open("nonzero_alpha_data.p", "wb"))
-    # print(r)
-    # print(a)
-    # print(zad)
 
+    training_data = get_training_data()
+    test_data = get_test_data()
+
+    r,a,zad,nzad = do_kernel(ngk)
+   
     pprint(nzad)
-    accuracy, precision, recall = calc_accuracy_precision_recall(test_data, ngk.kernel(), nzad)
+    accuracy, precision, recall = do_kernel(docmap, ngk)
 
 
     print(vals)
