@@ -10,15 +10,14 @@ def main():
 
     train1, test1, docs1 = load_docs('corn')
     train2, test2, docs2 = load_docs('crude')
-    train1 = [(d, -1.) for d in docs1['train'][:30]]
-    train2 = [(d, 1.) for d in docs2['train'][:30]]
+    train1 = [(d, -1.) for d in docs1['train'][:20]]
+    train2 = [(d, 1.) for d in docs2['train'][:20]]
     data = train1+train2
     random.shuffle(train1+train2)
 
-    kernel = WK()
-    kernel.gram_matrix([d[0] for d in data])
+    wk_kernel = WK([d[0] for d in data])
 
-    pMatrix = pMatrixCreator(data, kernel)
+    pMatrix = pMatrixCreator(data, wk_kernel)
     q,h = qhVectorCreator(len(data))
     gMatrix = gMatrixCreator(len(data))
     r = qp(matrix(pMatrix), matrix(q), matrix(gMatrix), matrix(h))
@@ -26,7 +25,11 @@ def main():
     param = nonZero(alpha, data)
     test_samples = docs1['test'][:10] # belong to class -1
     for sample in test_samples:
-        print("Indicator: ", ind(param, sample, kernel))
+        print("Indicator: ", ind(param, sample, wk_kernel))
+    test_samples = docs2['test'][:10] # belong to class 1
+    print('***')
+    for sample in test_samples:
+        print("Indicator: ", ind(param, sample, wk_kernel))
 
 def nonZero(alpha, data):
     nonZero = []
@@ -40,7 +43,7 @@ def nonZero(alpha, data):
 def ind(param, xs, kernel):
     sum = 0
     for (alpha, x,t) in param:
-        sum += alpha*t*kernel.kernel_func(xs,x)
+        sum += alpha*t*kernel.kernel(xs,x)
     return sum
 
 def linearKernel(vectorX, vectorY):
@@ -59,7 +62,7 @@ def pMatrixCreator(dataSet, kernel):
         x = dataSet[i]
         for j in range(n):
             y = dataSet[j]
-            pMatrix[i][j] = x[1]*y[1]*kernel.kernel_func(x[0] ,y[0])
+            pMatrix[i][j] = x[1]*y[1]*kernel.kernel(x[0] ,y[0])
     return pMatrix
 
 def qhVectorCreator(n):
