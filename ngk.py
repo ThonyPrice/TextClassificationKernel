@@ -73,6 +73,9 @@ class NGK():
             gram_matrix[i, j] = similarity
             gram_matrix[j, i] = similarity
         return gram_matrix
+        
+    def __str__(self):
+        return "NGK"
 
 
 if __name__ == '__main__':
