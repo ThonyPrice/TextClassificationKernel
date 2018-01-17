@@ -8,6 +8,7 @@ from ngk import NGK
 from pprint import pprint
 import random
 import pickle
+from WK import WK
 def p_mat(data, kernel):
     P = [[data[i].label*data[j].label*kernel(data[i].doc, data[j].doc) for j in range(len(data))] for i in range(len(data))]
     return P
@@ -51,7 +52,8 @@ def calc_accuracy_precision_recall(test_data, kernel, nzad):
     true_neg = 0
     for doc in test_data:
         print("PREDICTION: ", doc.label)
-        prediction = (predict(ngk.kernel(), nzad, doc.doc))
+        prediction = (predict(kernel.kernel(), nzad, doc.doc))
+        print("pre: ", prediction)
         if doc.label == "earn" and prediction > 0:
             correct += 1
             true_pos += 1
@@ -62,6 +64,11 @@ def calc_accuracy_precision_recall(test_data, kernel, nzad):
             true_neg += 1
         else:
             false_pos += 1
+    print("Correct",correct)
+    print("len(test_data)",len(test_data))
+    print("true_pos",true_pos)
+    print("false_pos",false_pos)
+    print("false_neg",false_neg)
     return (correct/(len(test_data)), true_pos/(true_pos+false_pos), true_pos/(true_pos+false_neg))
 
 
@@ -82,15 +89,19 @@ def do_kernel(docmap, kernelClass):
         r,a,zad,nzad = svm_for_label(training_data, kernelClass.kernel(), "earn")
     pickle.dump(nzad, open("nonzero_alpha_data"+str(kernelClass)+".p", "wb"))
 
-    return calc_accuracy_precision_recall(test_data, ngk.kernel(), nzad)
+    return calc_accuracy_precision_recall(test_data, kernelClass, nzad)
 
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
-    ngk = NGK(5)
-    
+
+    # ~*~ Select wich kernel to run here ~*~
+    kernel = NGK(5) # n-gram kernel
+    # kernel = WK([d.doc for d in get_training_data(docmap)]) word kernel
+
     training_data = get_training_data(docmap)
     test_data = get_test_data(docmap)
-    accuracy, precision, recall = do_kernel(docmap, ngk)
+    accuracy, precision, recall = do_kernel(docmap, kernel)
+    # accuracy, precision, recall = do_kernel(docmap, wk)
 
     print("Accuracy", accuracy)
     print("Precision:", precision)
