@@ -62,45 +62,36 @@ def calc_accuracy_precision_recall(test_data, kernel, nzad):
             true_neg += 1
         else:
             false_pos += 1
-    return (correct(len(test_data)), true_pos/(true_pos+false_pos), true_pos/(true_pos+false_neg))
+    return (correct/(len(test_data)), true_pos/(true_pos+false_pos), true_pos/(true_pos+false_neg))
 
 
 def get_training_data(docmap):
-    # Using the splits in the paper
+    # Using the splits in the paper, #380 docs
     return docmap['earn']['train'][:152] + docmap['corn']['train'][:38] + docmap['acq']['train'][:114] + docmap['crude']['train'][:76]
 
 
 def get_test_data(docmap):
-    # Using the splits in the paper
+    # Using the splits in the paper # 90 docs
     return  docmap['earn']['test'][:40] + docmap['corn']['test'][:10] + docmap['acq']['test'][:25] + docmap['crude']['test'][:15]
 
 
 def do_kernel(docmap, kernelClass):
     try:
-        nzad = pickle.load(open("nonzero_alpha_data"+kernelClass+".p","rb"))
+        nzad = pickle.load(open("nonzero_alpha_data"+str(kernelClass)+".p","rb"))
     except IOError as e:
         r,a,zad,nzad = svm_for_label(training_data, kernelClass.kernel(), "earn")
-    pickle.dump(nzad, open("nonzero_alpha_data"+kernelClass+".p", "wb"))
+    pickle.dump(nzad, open("nonzero_alpha_data"+str(kernelClass)+".p", "wb"))
 
     return calc_accuracy_precision_recall(test_data, ngk.kernel(), nzad)
 
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
     ngk = NGK(5)
-
-    train_amt = 380
-    test_amt = 90
-
-    training_data = get_training_data()
-    test_data = get_test_data()
-
-    r,a,zad,nzad = do_kernel(ngk)
-   
-    pprint(nzad)
+    
+    training_data = get_training_data(docmap)
+    test_data = get_test_data(docmap)
     accuracy, precision, recall = do_kernel(docmap, ngk)
 
-
-    print(vals)
     print("Accuracy", accuracy)
     print("Precision:", precision)
     print("Recall: ", recall)
