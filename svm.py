@@ -89,7 +89,7 @@ def do_kernel(docmap, kernelClass, label="earn"):
         nzad = pickle.load(open("nonzero_alpha_data_{}_{}".format(label,str(kernelClass)+".p"),"rb"))
     except IOError as e:
         print("Data ",len(training_data[0:5]))
-        r,a,zad,nzad = svm_for_label(training_data[0:5], kernelClass.kernel(), "earn")
+        r,a,zad,nzad = svm_for_label(training_data, kernelClass.kernel(), label)
     pickle.dump(nzad, open("nonzero_alpha_data_{}_{}".format(label,str(kernelClass)+".p"), "wb"))
 
     return calc_accuracy_precision_recall(test_data, kernelClass, nzad, label)
