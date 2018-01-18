@@ -9,6 +9,8 @@ from pprint import pprint
 import random
 import pickle
 from WK import WK
+import ssk
+
 def p_mat(data, kernel):
     P = [[data[i].label*data[j].label*kernel(data[i].doc, data[j].doc) for j in range(len(data))] for i in range(len(data))]
     return P
@@ -44,7 +46,7 @@ def predict(kernel, NAD, newpoint):
     s = sum(calc)
     return s
 
-def calc_accuracy_precision_recall(test_data, kernel, nzad):
+def calc_accuracy_precision_recall(test_data, kernel, nzad, label="earn"):
     correct = 0
     true_pos = 0
     false_neg = 0
@@ -54,12 +56,12 @@ def calc_accuracy_precision_recall(test_data, kernel, nzad):
         print("PREDICTION: ", doc.label)
         prediction = (predict(kernel.kernel(), nzad, doc.doc))
         print("pre: ", prediction)
-        if doc.label == "earn" and prediction > 0:
+        if doc.label == label and prediction > 0:
             correct += 1
             true_pos += 1
-        elif doc.label == "earn" and prediction <= 0:
+        elif doc.label == label and prediction <= 0:
             false_neg += 1
-        elif doc.label != "earn" and prediction < 0:
+        elif doc.label != label and prediction < 0:
             correct += 1
             true_neg += 1
         else:
@@ -82,22 +84,23 @@ def get_test_data(docmap):
     return  docmap['earn']['test'][:40] + docmap['corn']['test'][:10] + docmap['acq']['test'][:25] + docmap['crude']['test'][:15]
 
 
-def do_kernel(docmap, kernelClass):
+def do_kernel(docmap, kernelClass, label="earn"):
     try:
-        nzad = pickle.load(open("nonzero_alpha_data"+str(kernelClass)+".p","rb"))
+        nzad = pickle.load(open("nonzero_alpha_data_{}_{}".format(label,str(kernelClass)+".p"),"rb"))
     except IOError as e:
-        r,a,zad,nzad = svm_for_label(training_data, kernelClass.kernel(), "earn")
-    pickle.dump(nzad, open("nonzero_alpha_data"+str(kernelClass)+".p", "wb"))
+        print("Data ",len(training_data[0:5]))
+        r,a,zad,nzad = svm_for_label(training_data[0:5], kernelClass.kernel(), "earn")
+    pickle.dump(nzad, open("nonzero_alpha_data_{}_{}".format(label,str(kernelClass)+".p"), "wb"))
 
-    return calc_accuracy_precision_recall(test_data, kernelClass, nzad)
+    return calc_accuracy_precision_recall(test_data, kernelClass, nzad, label)
 
 if __name__ == '__main__':
     docmap = reut.load_docs_with_labels(["earn","corn","acq","crude"])
 
     # ~*~ Select wich kernel to run here ~*~
-    kernel = NGK(5) # n-gram kernel
+    # kernel = NGK(5) # n-gram kernel
     # kernel = WK([d.doc for d in get_training_data(docmap)]) word kernel
-
+    kernel = ssk.sSK(5, 0.05)
     training_data = get_training_data(docmap)
     test_data = get_test_data(docmap)
     accuracy, precision, recall = do_kernel(docmap, kernel)
