@@ -26,6 +26,7 @@ class sSK():
             return self.normalizedSSK(doc1, doc2, self.n, self.l)
         return kernel_func
 
+    @functools.lru_cache(maxsize=300)
     def SSK(self, s,t,n,l):
     # l is the Lambda value for the kernel
         lenS = len(s)
