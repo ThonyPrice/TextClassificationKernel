@@ -9,7 +9,7 @@ from math import floor
 from math import log
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
+import functools
 '''
 Word kernel for text classification. Initialize class by:
 >>> WK_kernel = WK([text1, text2,...])
@@ -20,6 +20,7 @@ signs = [
     '[', ']', '&', "'s", "''", '>', '``'
 ]
 stop_words = stopwords.words("english") + signs
+
 
 class WK(object):
 
@@ -40,21 +41,22 @@ class WK(object):
         def kernel_func(doc1, doc2):
             v = self.vectorize(doc1)
             w = self.vectorize(doc2)
-            normalize = ( np.dot(v, v) * np.dot(w, w) )**0.5
+            normalize = (np.dot(v, v) * np.dot(w, w))**0.5
             return np.dot(v, w)
         return kernel_func
 
+    @functools.lru_cache(maxsize=1000)
     def vectorize(self, doc):
         v = []
         doc_count = Counter(word_tokenize(doc))
         v = [
-            log( 1. + doc_count[word] ) *
-            log( self.n / self.df[word] )
+            log(1. + doc_count[word]) *
+            log(self.n / self.df[word])
             for word in self.df.keys()
         ]
         norm = np.linalg.norm(v)
         if norm != 0:
-            return np.divide(np.asarray(v),np.linalg.norm(v))
+            return np.divide(np.asarray(v), np.linalg.norm(v))
         return np.asarray(v)
 
     def featureVectors(self, docs):
@@ -62,8 +64,8 @@ class WK(object):
         for doc in docs:
             doc_count = Counter(word_tokenize(doc))
             v = [
-                log( 1 + doc_count[word] ) *
-                log( self.n / self.df[word] )
+                log(1 + doc_count[word]) *
+                log(self.n / self.df[word])
                 for word in self.unique_words.keys()
             ]
             vectors.append(np.asarray(v))
@@ -71,7 +73,7 @@ class WK(object):
 
     def filterFewOccurences(self, words, limit):
         for key, count in itertools.dropwhile(lambda key_count:
-                key_count[1] > limit, words.most_common()):
+                                              key_count[1] > limit, words.most_common()):
             del words[key]
         return words
 
@@ -90,8 +92,8 @@ class WK(object):
         feature_vectors = self.featureVectors(self.docs)
         m = np.zeros((n, n))
         for idx, (doc1, doc2) in enumerate(itertools.product(feature_vectors, feature_vectors)):
-            m[floor(idx/n)][idx%n] = np.dot(doc1, doc2) / \
-                ( np.dot(doc1, doc1) * np.dot(doc2, doc2) )**0.5
+            m[floor(idx/n)][idx % n] = np.dot(doc1, doc2) / \
+                (np.dot(doc1, doc1) * np.dot(doc2, doc2))**0.5
         return m
 
     def __str__(self):
