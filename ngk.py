@@ -7,6 +7,7 @@ import reut
 from nltk.corpus import reuters
 import functools
 
+
 class NGK():
     """
     Class for N-gram kernel
@@ -17,7 +18,7 @@ class NGK():
     def __init__(self, n):
         self.n = n
 
-    @functools.lru_cache()
+    @functools.lru_cache(maxsize=1000)
     def vectorize(self, doc):
         """Returns the documented converted into a set containing its n-grams."""
         words = []
@@ -30,7 +31,7 @@ class NGK():
 
     def kernel(self):
         def kernel_func(doc1, doc2):
-            return self.similarity(self.vectorize(doc1),self.vectorize(doc2))
+            return self.similarity(self.vectorize(doc1), self.vectorize(doc2))
         return kernel_func
 
     def similarity(self, doc1, doc2):
@@ -45,7 +46,7 @@ class NGK():
         return len(g1.intersection(g2)) / len(g1.union(g2))
 
     def cosine_similarity(self, g1, g2):
-        
+
         # Counts the occurance of each ngram
         # Basically a sparse vector of every ngram and the times they occur
         doc1_wordfreq, doc2_wordfreq = Counter(g1), Counter(g2)
@@ -73,24 +74,24 @@ class NGK():
             gram_matrix[i, j] = similarity
             gram_matrix[j, i] = similarity
         return gram_matrix
-        
+
     def __str__(self):
-        return "NGK"
+        return "NGK{}".format(self.n)
 
 
 if __name__ == '__main__':
-    
+
     print("NGK Start")
     ngk = NGK(5)
     print("EARN")
-    train,test, docs = reut.load_docs("earn")
+    train, test, docs = reut.load_docs("earn")
     print("CORN")
-    train,test, docs = reut.load_docs("corn")
+    train, test, docs = reut.load_docs("corn")
 
     gram_matrix = ngk.gram_matrix(docs['train'][:10])
     print(gram_matrix)
 
-    train,test, docs = reut.load_docs()
+    train, test, docs = reut.load_docs()
 
     gram_matrix = ngk.gram_matrix(docs['train'][:500])
 
